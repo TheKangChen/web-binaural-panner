@@ -1,0 +1,19 @@
+body {
+    text-align: center;
+}
+
+.controllers {
+    margin-top: 20px;
+}
+
+.controllers .slider {
+    width: 300px;
+}
+
+.span {
+    margin: 70px;
+}
+
+.transport .btn {
+    padding: 15px 90px;
+}

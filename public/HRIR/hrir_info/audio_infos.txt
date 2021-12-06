@@ -1,0 +1,4 @@
+Folder name: H11_48K_24bit
+Format of filename: azi_0.0_ele_-15.0.wav
+Number of files: 2209
+Samplerate: 48000

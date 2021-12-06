@@ -1,0 +1,25 @@
+{
+  "name": "final-project-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheKangChen/web-binaural-panner.git"
+  },
+  "author": "Kang Chen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheKangChen/web-binaural-panner/issues"
+  },
+  "homepage": "https://github.com/TheKangChen/web-binaural-panner#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "lodash": "^4.17.21",
+    "nodemon": "^2.0.15"
+  }
+}
