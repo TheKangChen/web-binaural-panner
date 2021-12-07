@@ -44,4 +44,4 @@ for file in filelist:
 
 
 norm_audio_float32 = float32_array / np.amax(abs(float32_array))
-# float32_array.tofile('hrir.bin')
+float32_array.tofile('hrir.bin')
