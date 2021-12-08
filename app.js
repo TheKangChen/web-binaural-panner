@@ -6,12 +6,13 @@ const app = express();
 
 app.use(express.static('public'));
 
-const port = 3000;
+const port = process.env.PORT;
+const local = 3000;
 
 app.get('/', (req, res) => {
     res.sendFile('index.html');
 });
 
-const server = app.listen(port, () => {
-    console.log(`Server started on http://localhost:${port}`);
+const server = app.listen(port || local, () => {
+    console.log(`Server started on http://localhost:${port || local}`);
 });
