@@ -1,39 +1,48 @@
 import HRIRObject from "./modules/HRIRObject.js";
 import BinauralPanner from "./modules/BinauralPanner.js";
 import { apple } from "./modules/process.js";
+import aziList from "./modules/aziList.js";
+import eleList from "./modules/eleList.js";
 
 const hrirBin = "./HRIR/H11_hrir.bin";
 const hrirDir = "../HRIR/H11_48K_24bit/";
 
-let audioContext;
+let audioContext = null;
 let hrirObject;
 let source = null;
-let panner;
+let panner = null;
 let fileBuffer = null;
 
-let azimuth = 0;
-let elevation = 0;
-let distance = 1;
+let azimuth;
+let elevation;
+let distance;
 
 let playing;
 
 // select html elements
 const playButton = $('#play');
+const stopButton = $('#stop');
 const fileUpload = $('#upload');
 const aziSlider = $('#azi-slider');
 const eleSlider = $('#ele-slider');
 const distSlider = $('#dist-slider');
-
-
+const loopBox = $('input:checkbox');
 
 
 const initialize = async () => {
     await $(document).ready(() => {
         hrirObject = new HRIRObject(hrirDir);
         hrirObject.loadHrir(hrirBin);
+        
+        aziSlider.val(96);
+        eleSlider.val(12)
+        distSlider.val(0);
+        azimuth = aziSlider.val();
+        elevation = eleSlider.val();
+        distance = 1 - distSlider.val();
         console.log(hrirObject.container);
-
-        // alert('Upload mono audio file.');
+        console.log(aziList);
+        console.log(eleList);
     });
 }
 
@@ -50,9 +59,10 @@ const initAudioContext = () => {
 const connectAudioContext = async () => {
     source = audioContext.createBufferSource();
     source.buffer = fileBuffer;
-    source.loop = true;
+    source.loop = false;
+    source.onended = reload;
     panner = new BinauralPanner(audioContext, source, hrirObject);
-    panner.update(azimuth, elevation);
+    panner.update(aziList[azimuth], eleList[elevation], distance);
     panner.connect(audioContext.destination);
     console.log('AudioContext connected');
 }
@@ -70,16 +80,16 @@ const sliderValueToPanner = (event) => {
             elevation = value;
             break;
         case 'dist-slider':
-            distance = value;
+            distance = 1 - value;
             break;
         default:
             break;
     }
 
     try {
-        panner.update(azimuth, elevation);
+        panner.update(aziList[azimuth], eleList[elevation], distance);
     } catch (err) {
-        console.log(event.target.value);
+        // console.log(event.target.value);
         console.log(err);
     }
 }
@@ -93,7 +103,9 @@ const getUserFiles = async (event) => {
     const fileReader = new FileReader();
     fileReader.onload = decodeFile;
     fileReader.readAsArrayBuffer(fileList[0]);
+
     console.log('File decoded');
+    playButton.prop('disabled', false);
 }
 
 
@@ -110,32 +122,44 @@ const decodeFile = (event) => {
 
 
 const playAudio = (event) => {
-    try {
-        connectAudioContext();
-        
-        if (!playing) {
-            source.start();
-            playing = true;
-            console.log('Playing');
+    if (!playing) {
+        try {
+            connectAudioContext();
+            loopBox.prop('disabled', false);
+            stopButton.prop('disabled', false);
+            
+            if (!playing) {
+                source.start();
+                playing = true;
+                console.log('playing');
+            }
+        } catch (err) {
+            console.log(err);
+            alert('Please choose file to load!');
+            playing = false;
         }
-    } catch (err) {
-        console.log(err);
-        alert('Please choose file to load!');
-        playing = false;
     }
 }
 
 
-const logChange = (event) => {
-    // console.log(event.target.value);
-    console.log(event);
+const toggleLoop = (event) => {
+    source.loop = !source.loop;
 }
 
 
-const restartPlay = () => {
-    //
+const reload = () => {
+    playing = false;
+    stopButton.prop('disabled', true);
+    loopBox.prop('checked', false);
+    loopBox.prop('disabled', true);
 }
 
+
+const stopAudio = (event) => {
+    if (playing) {
+        source.stop();
+    }
+}
 
 
 // Main process:
@@ -144,7 +168,8 @@ initialize();
 
 fileUpload.on('change', getUserFiles);
 playButton.on('click', playAudio);
-
+stopButton.on('click', stopAudio);
+loopBox.on('change', toggleLoop);
 aziSlider.on('input', sliderValueToPanner);
 eleSlider.on('input', sliderValueToPanner);
 distSlider.on('input', sliderValueToPanner);

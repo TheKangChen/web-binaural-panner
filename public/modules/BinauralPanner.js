@@ -6,13 +6,16 @@ export default class BinauralPanner {
         this.currentAzimuth = 0;
         this.currentElevation = 0;
 
+        this.voulumeNode = new this.CreateGainNode(audioContext, 1);
+
         this.currentConvolver = new this.CreateIRConvolver(audioContext);
         this.nextConvolver = new this.CreateIRConvolver(audioContext);
 
         this.source = source;
 
-        this.source.connect(this.currentConvolver.convolver);
-        this.source.connect(this.nextConvolver.convolver);
+        this.source.connect(this.voulumeNode.gain);
+        this.voulumeNode.gain.connect(this.currentConvolver.convolver);
+        this.voulumeNode.gain.connect(this.nextConvolver.convolver);
     }
 
     CreateIRConvolver = class CreateConvolver {
@@ -40,13 +43,18 @@ export default class BinauralPanner {
     }
 
     CreateGainNode = class GainNode {
-        constructor() {
-            //
+        constructor(audioContext, initialGain) {
+            this.gain = audioContext.createGain();
+            this.gain.gain.value = initialGain;
+        }
+
+        updateGain(newGainValue) {
+            this.gain.gain.value = newGainValue;
         }
     }
 
     swapConvolver(currentConvolver, newConvolver) {
-        let fadeTime = 0.05;
+        let fadeTime = 0.025;
         currentConvolver.gainNode.gain.setValueAtTime(1, this.audioContext.currentTime);
         currentConvolver.gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + fadeTime);
         newConvolver.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
@@ -57,28 +65,25 @@ export default class BinauralPanner {
         currentConvolver = n;
     }
 
-    update(azi, ele) {
-        //if azi and ele is in hrirobject
+    update(azi, ele, dist) {
+        this.voulumeNode.updateGain(dist);
+
         if (azi in this.hrirObject.container['L']) {
             this.currentAzimuth = azi;
-            // console.log('azi exist in object');
 
             if (ele in this.hrirObject.container['L'][this.currentAzimuth]){
                 this.currentElevation = ele;
-                // console.log('ele exist in object');
                 this.nextConvolver.fillBuffer(this.hrirObject.getNewHrir(this.currentAzimuth, this.currentElevation));
                 this.swapConvolver(this.currentConvolver, this.nextConvolver);
             } else {
-                // console.log('ele doesnt exist in object');
                 this.nextConvolver.fillBuffer(this.hrirObject.getNewHrir(this.currentAzimuth, this.currentElevation));
                 this.swapConvolver(this.currentConvolver, this.nextConvolver);
             }
         } else {
-            // console.log('azi doesnt exist in object');
             this.nextConvolver.fillBuffer(this.hrirObject.getNewHrir(this.currentAzimuth, this.currentElevation));
             this.swapConvolver(this.currentConvolver, this.nextConvolver);
         }
-        console.log([this.currentAzimuth, this.currentElevation])
+        // console.log([this.currentAzimuth, this.currentElevation, dist])
     }
 
     connect(destination) {
