@@ -1,6 +1,5 @@
 import HRIRObject from "./modules/HRIRObject.js";
 import BinauralPanner from "./modules/BinauralPanner.js";
-import { apple } from "./modules/process.js";
 import aziList from "./modules/aziList.js";
 import eleList from "./modules/eleList.js";
 
@@ -16,7 +15,6 @@ let fileBuffer = null;
 let azimuth;
 let elevation;
 let distance;
-
 let playing;
 
 // select html elements
@@ -29,6 +27,10 @@ const distSlider = $('#dist-slider');
 const loopBox = $('input:checkbox');
 
 
+// ---------------------------------------------------
+// Functions
+// ---------------------------------------------------
+// Get HRIR binaries 
 const initialize = async () => {
     await $(document).ready(() => {
         hrirObject = new HRIRObject(hrirDir);
@@ -41,12 +43,13 @@ const initialize = async () => {
         elevation = eleSlider.val();
         distance = 1 - distSlider.val();
         console.log(hrirObject.container);
-        console.log(aziList);
-        console.log(eleList);
+        // console.log(aziList);
+        // console.log(eleList);
     });
 }
 
 
+// Start Audio Context
 const initAudioContext = () => {
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -56,6 +59,7 @@ const initAudioContext = () => {
 }
 
 
+// Connect all nodes
 const connectAudioContext = async () => {
     source = audioContext.createBufferSource();
     source.buffer = fileBuffer;
@@ -68,6 +72,7 @@ const connectAudioContext = async () => {
 }
 
 
+// Send slider value to panner (list idx)
 const sliderValueToPanner = (event) => {
     let value = event.target.value;
     let slider = event.target.id;
@@ -109,6 +114,7 @@ const getUserFiles = async (event) => {
 }
 
 
+// Decode user file into audio buffer
 const decodeFile = (event) => {
     let file = event.target.result;
     audioContext.decodeAudioData(file).then((data) => {
@@ -121,6 +127,7 @@ const decodeFile = (event) => {
 }
 
 
+// Play sound
 const playAudio = (event) => {
     if (!playing) {
         try {
@@ -131,7 +138,6 @@ const playAudio = (event) => {
             if (!playing) {
                 source.start();
                 playing = true;
-                console.log('playing');
             }
         } catch (err) {
             console.log(err);
@@ -142,11 +148,13 @@ const playAudio = (event) => {
 }
 
 
+// Source sound loop on/off
 const toggleLoop = (event) => {
     source.loop = !source.loop;
 }
 
 
+// Reload source sound once sound stops
 const reload = () => {
     playing = false;
     stopButton.prop('disabled', true);
@@ -155,6 +163,7 @@ const reload = () => {
 }
 
 
+// Stop sound
 const stopAudio = (event) => {
     if (playing) {
         source.stop();
@@ -162,10 +171,13 @@ const stopAudio = (event) => {
 }
 
 
-// Main process:
+// ---------------------------------------------------
+// MAIN PROCESS
+// ---------------------------------------------------
 
 initialize();
 
+// Event listeners
 fileUpload.on('change', getUserFiles);
 playButton.on('click', playAudio);
 stopButton.on('click', stopAudio);

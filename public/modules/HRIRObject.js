@@ -12,6 +12,7 @@ export default class HRIRObject {
         this.loaded = false;
     }
 
+    // Request H11_hrirList.bin file from server and add to nested object
     loadHrir(file) {
         let hReq = new XMLHttpRequest();
         let ir = {};
@@ -50,6 +51,7 @@ export default class HRIRObject {
         this.loaded = true;
     }
 
+    // Grab new hrir from hrir container object
     getNewHrir(azi, ele) {
         while (true) {
             let newHrirL = new Float32Array(256);

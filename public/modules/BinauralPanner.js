@@ -1,4 +1,5 @@
 export default class BinauralPanner {
+    // Creates the panner object with source, gain, convolver connected
     constructor(audioContext, source, hrirObject) {
         this.audioContext = audioContext;
         this.hrirObject = hrirObject;
@@ -18,6 +19,7 @@ export default class BinauralPanner {
         this.voulumeNode.gain.connect(this.nextConvolver.convolver);
     }
 
+    // Creates convolver node
     CreateIRConvolver = class CreateConvolver {
         constructor(audioContext) {
             this.frameCount = 256;
@@ -31,6 +33,7 @@ export default class BinauralPanner {
             this.convolver.connect(this.gainNode);
         }
 
+        // Fill node buffer with sample in sequence
         fillBuffer(hrirLR) {
             this.bufferL = this.buffer.getChannelData(0);
             this.bufferR = this.buffer.getChannelData(1);
@@ -42,17 +45,20 @@ export default class BinauralPanner {
         }
     }
 
+    // Creates gain node
     CreateGainNode = class GainNode {
         constructor(audioContext, initialGain) {
             this.gain = audioContext.createGain();
             this.gain.gain.value = initialGain;
         }
 
+        // Update gain value
         updateGain(newGainValue) {
             this.gain.gain.value = newGainValue;
         }
     }
 
+    // Switch current convolver with new convolver to avoid clicks
     swapConvolver(currentConvolver, newConvolver) {
         let fadeTime = 0.025;
         currentConvolver.gainNode.gain.setValueAtTime(1, this.audioContext.currentTime);
@@ -60,11 +66,13 @@ export default class BinauralPanner {
         newConvolver.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
         newConvolver.gainNode.gain.linearRampToValueAtTime(1, this.audioContext.currentTime + fadeTime);
 
+        // Swap names to ensure current convolver is always the one in use
         let n = newConvolver;
         newConvolver = currentConvolver;
         currentConvolver = n;
     }
 
+    // Update convolver with new azimuth, elevation, and distance
     update(azi, ele, dist) {
         this.voulumeNode.updateGain(dist);
 
@@ -86,6 +94,7 @@ export default class BinauralPanner {
         // console.log([this.currentAzimuth, this.currentElevation, dist])
     }
 
+    // Overwrite WebAudio connect method to connect two convolver nodes to destination
     connect(destination) {
         this.currentConvolver.convolver.connect(destination);
         this.nextConvolver.convolver.connect(destination);

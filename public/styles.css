@@ -7,7 +7,7 @@ body {
 }
 
 .controllers .slider {
-    width: 800px;
+    width: 90%;
 }
 
 .span {
@@ -15,5 +15,5 @@ body {
 }
 
 .transport .btn {
-    padding: 15px 90px;
+    padding: 2% 11%;
 }
