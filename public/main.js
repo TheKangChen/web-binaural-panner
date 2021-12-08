@@ -16,6 +16,7 @@ let azimuth;
 let elevation;
 let distance;
 let playing;
+let loaded;
 
 // select html elements
 const playButton = $('#play');
@@ -35,6 +36,7 @@ const initialize = async () => {
     await $(document).ready(() => {
         hrirObject = new HRIRObject(hrirDir);
         hrirObject.loadHrir(hrirBin);
+        loaded = false;
         
         aziSlider.val(96);
         eleSlider.val(12)
@@ -102,12 +104,16 @@ const sliderValueToPanner = (event) => {
 
 // Get user file when uploaded
 const getUserFiles = async (event) => {
-    initAudioContext();
+    if (loaded) {
+        reload();
+    }
 
+    initAudioContext();
     const fileList = await event.target.files;
     const fileReader = new FileReader();
     fileReader.onload = decodeFile;
     fileReader.readAsArrayBuffer(fileList[0]);
+    loaded = true;
 
     console.log('File decoded');
     playButton.prop('disabled', false);
@@ -156,6 +162,9 @@ const toggleLoop = (event) => {
 
 // Reload source sound once sound stops
 const reload = () => {
+    if (loaded) {
+        source.stop();
+    }
     playing = false;
     stopButton.prop('disabled', true);
     loopBox.prop('checked', false);
